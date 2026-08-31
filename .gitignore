@@ -1,0 +1,30 @@
+# OS / editor
+.DS_Store
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# DB / local runtime
+*.db
+*.sqlite3
