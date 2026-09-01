@@ -1,18 +1,50 @@
 # RecoverAI Demo Script
 
-## 60-90 Second Flow
+The live UI segment is designed for approximately 60-90 seconds inside a five-minute submission video.
 
-1. **Problem:** Merchants lose revenue when valuable transactions fail, are abandoned, or need human review.
-2. **Dashboard:** Open `http://127.0.0.1:5177/` and point to the live Initial Revenue at Risk, Current Revenue at Risk, Recovered Revenue, Recovery Rate, and At-Risk Transactions cards.
-3. **Select opportunity:** Open Transactions, choose `TXN-000051` at `/transactions/51`, a failed network-error synthetic transaction with a retry available.
-4. **AI analysis:** Click **Analyze Transaction**. Show the risk level, risk score, recovery probability, diagnosis, recommended action, confidence, and approval requirement.
-5. **Guardrail:** Point out that the policy panel allows the bounded retry because the retry count is zero and the transaction is not high value.
-6. **Simulated recovery:** Click **Execute Recovery**, confirm the action, and state clearly that this is a simulation and no funds move.
-7. **Outcome:** Show the simulated successful recovery, updated transaction state, and recovery history.
-8. **Business value:** Return to Dashboard, click **Refresh**, and show updated attempts and recovery metrics.
-9. **Audit trail:** Open Audit Logs and expand the tested transaction events to show AI recommendation, policy, human review, and simulated execution records.
-10. **Closing:** RecoverAI turns revenue-risk signals into explainable, policy-controlled next steps while keeping every operation in test mode.
+## 0:00-0:30 - Problem
 
-Primary demo transaction: `TXN-000051` / transaction ID `51`.
+Merchants lose potential revenue when payments fail or checkout is abandoned. The challenge is deciding which transactions deserve attention, why they failed, and what action is safe.
 
-All payment and recovery operations shown in this MVP are simulated/test-mode operations.
+## 0:30-1:00 - Solution
+
+RecoverAI combines deterministic intelligence, policy guardrails, human approval, simulated recovery, analytics, and an audit trail in one merchant workspace. All payment and recovery operations shown in this MVP are simulated/test-mode operations.
+
+## 1:00-1:45 - Dashboard
+
+Open `http://127.0.0.1:5179/`. Point to Initial Revenue at Risk, Current Revenue at Risk, Recovered Revenue, Recovery Rate, and At-Risk Transactions. Mention that the values come from the FastAPI summary endpoint and synthetic SQLite data.
+
+## 1:45-2:30 - Transaction Intelligence
+
+On a freshly seeded dataset, open `/transactions/51`, transaction `TXN-000051`. Click **Analyze Transaction**. Show `MEDIUM` risk, score approximately `0.28`, recovery probability approximately `0.83`, the network-failure diagnosis, `RETRY_PAYMENT`, confidence, and the approval requirement. Do not describe any hidden reasoning.
+
+## 2:30-3:20 - Recovery and Guardrails
+
+Click **Execute Recovery** and confirm the dialog, which explicitly says no real payment or communication occurs. The deterministic simulation should succeed for transaction `51`. Show the `RECOVERED` result, the simulated message, and the recovery timeline.
+
+## 3:20-4:00 - Human Approval and Escalation
+
+Open Recovery Center and explain that a high-value candidate such as transaction `1273` enters **AWAITING HUMAN APPROVAL** before execution. Approve or reject a pending attempt to show the backend workflow. Transaction `631` demonstrates retry-limit blocking; transaction `1611` demonstrates high-value escalation.
+
+## 4:00-4:30 - Analytics
+
+Open `/analytics`. Show revenue comparison, risk distribution, recovery outcomes, failure-reason distribution, and transaction-type distribution. Emphasize that the category charts are derived from the full paginated transaction API, not hard-coded values.
+
+## 4:30-5:00 - Audit Trail and Business Value
+
+Open `/audit`, search visually for transaction `51`, and expand its events. Show `AI_AGENT`, policy, `SYSTEM`, state, result, timestamp, and metadata. Close by explaining that RecoverAI turns revenue-risk signals into explainable, bounded actions while keeping every operation test-only and auditable.
+
+## Exact Primary Demo Flow
+
+1. Dashboard: `/`
+2. Transactions: click **Transactions** in the sidebar
+3. Details: click `TXN-000051` or open `/transactions/51`
+4. Click **Analyze Transaction**
+5. Review recommendation and guardrail
+6. Click **Execute Recovery**, then **Confirm**
+7. Return to Dashboard and click **Refresh**
+8. Open **Audit Logs** and expand the transaction events
+
+Primary demo transaction on a fresh seed: `TXN-000051` / ID `51`, amount `₹3,090.75`, failed `NETWORK_ERROR`, retry count `0`. Expected result: simulated retry succeeds and the transaction becomes `RECOVERED`.
+
+Fallback: if the transaction has already been executed in the demo database, use transaction `1273` to demonstrate `AWAITING_HUMAN_APPROVAL` and rejection, or transaction `631` to demonstrate retry-limit blocking. Do not repeatedly execute the same transaction.
