@@ -71,7 +71,9 @@ Audit Log
 Analytics
 ```
 
-The policy engine enforces the allowlist, maximum automatic retry attempts, terminal-state protection, repeated-failure escalation, and high-value/critical-risk approval. The executor uses deterministic test-mode outcomes and never calls payment or messaging providers. Pending approval records are persisted as recovery attempts and rechecked before execution.
+The policy engine enforces the allowlist, maximum automatic retry attempts, terminal-state protection, repeated-failure escalation, and high-value/critical-risk approval. Reaching the retry limit or repeated failure changes the transaction to `ESCALATED`, records a blocked attempt, writes an audit event, and stops automation. The executor uses deterministic test-mode outcomes and never calls payment or messaging providers. Pending approval records are persisted as recovery attempts and rechecked before execution. Attempt numbers are sequential per transaction across all recovery actions.
+
+Each successful recommendation also creates an `AI_AGENT / RECOVERY_RECOMMENDATION` audit event with concise structured decision metadata. Initial revenue at risk is calculated from the transaction's qualifying failed or abandoned state before recovery-state transitions; current revenue at risk excludes `RECOVERED`, `ESCALATED`, and `NOT_RECOVERABLE` transactions. Recovered revenue counts each `RECOVERED` transaction once, and recovery rate is `recovered_revenue / initial_revenue_at_risk`.
 
 All recovery operations in this MVP are simulated/test-mode operations and do not move real funds.
 

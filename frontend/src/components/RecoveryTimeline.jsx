@@ -1,0 +1,4 @@
+export default function RecoveryTimeline({ attempts = [], events = [] }) {
+  const items = [...events.map((event) => ({ time: event.timestamp, title: event.action, detail: `${event.actor}: ${event.reason || event.result || 'Audit event'}` })), ...attempts.map((attempt) => ({ time: attempt.executed_at, title: attempt.action, detail: `${attempt.status}: ${attempt.result || attempt.reason || 'Recovery attempt'}` }))].sort((a, b) => new Date(b.time) - new Date(a.time))
+  return <div className="timeline">{items.length ? items.map((item, index) => <div className="timeline-item" key={`${item.time}-${index}`}><span className="timeline-dot" /><div><strong>{item.title.replaceAll('_', ' ')}</strong><p>{item.detail}</p><time>{new Date(item.time).toLocaleString()}</time></div></div>) : <p className="muted">No recovery history yet.</p>}</div>
+}

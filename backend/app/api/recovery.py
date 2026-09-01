@@ -29,6 +29,26 @@ def analyze_transaction(transaction_id: int, db: Session = Depends(get_db)):
     recommendation = RecoveryAgent(db).analyze_transaction(transaction_id)
     if recommendation is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    transaction = db.get(Transaction, transaction_id)
+    _audit(
+        db,
+        transaction,
+        "AI_AGENT",
+        "RECOVERY_RECOMMENDATION",
+        recommendation.diagnosis,
+        transaction.recovery_status.value,
+        transaction.recovery_status.value,
+        f"{recommendation.recommended_action.value}; risk={recommendation.risk_score:.2f}; probability={recommendation.recovery_probability:.2f}",
+        {
+            "risk_level": recommendation.risk_level.value,
+            "risk_score": recommendation.risk_score,
+            "recovery_probability": recommendation.recovery_probability,
+            "recommended_action": recommendation.recommended_action.value,
+            "confidence": recommendation.confidence,
+            "requires_human_approval": recommendation.requires_human_approval,
+        },
+    )
+    db.commit()
     return recommendation
 
 
@@ -110,6 +130,8 @@ def execute_recovery(transaction_id: int, request: ExecuteRecoveryRequest, db: S
     attempt = RecoveryAttempt(transaction_id=transaction.id, action=action, status=RecoveryAttemptStatus.PENDING, amount=transaction.amount, attempt_number=_attempt_number(db, transaction.id), reason=policy.reason)
     db.add(attempt)
     if not policy.allowed:
+        if policy.policy_rule in {"RULE_2_RETRY_LIMIT", "RULE_5_REPEATED_FAILURE"}:
+            transaction.recovery_status = RecoveryStatus.ESCALATED
         attempt.status = RecoveryAttemptStatus.BLOCKED
         attempt.result = policy.reason
         _audit(db, transaction, "POLICY_ENGINE", "POLICY_BLOCK", policy.reason, transaction.recovery_status.value, transaction.recovery_status.value, "BLOCKED", {"policy_rule": policy.policy_rule})
@@ -127,6 +149,9 @@ def execute_recovery(transaction_id: int, request: ExecuteRecoveryRequest, db: S
     transaction.recovery_status = result.next_state
     if action == RecoveryAction.RETRY_PAYMENT:
         transaction.retry_count += 1
+        if not result.success and transaction.retry_count >= PolicyEngine.MAX_AUTOMATIC_RETRY_ATTEMPTS:
+            transaction.recovery_status = RecoveryStatus.ESCALATED
+            result = result.__class__(result.success, result.action, result.transaction_id, result.amount, result.message, result.next_state, True, "Maximum retry attempts reached.")
     attempt.status = RecoveryAttemptStatus.SUCCESS if result.success else RecoveryAttemptStatus.ESCALATED if result.next_state == RecoveryStatus.ESCALATED else RecoveryAttemptStatus.FAILED
     attempt.result = result.message
     _audit(db, transaction, "SYSTEM", "SIMULATED_RECOVERY", result.stop_reason or result.message, previous_state, result.next_state.value, "SUCCESS" if result.success else "FAILED", {"simulated": True, "action": action.value})
@@ -154,6 +179,8 @@ def _approve_or_reject(attempt_id: int, approve: bool, db: Session):
     attempts = db.execute(select(RecoveryAttempt).where(RecoveryAttempt.transaction_id == transaction.id, RecoveryAttempt.id != attempt.id)).scalars().all()
     policy = PolicyEngine().check(transaction, attempt.action, recommendation, attempts)
     if not policy.allowed:
+        if policy.policy_rule in {"RULE_2_RETRY_LIMIT", "RULE_5_REPEATED_FAILURE"}:
+            transaction.recovery_status = RecoveryStatus.ESCALATED
         attempt.status = RecoveryAttemptStatus.BLOCKED
         attempt.result = policy.reason
         _audit(db, transaction, "POLICY_ENGINE", "POLICY_BLOCK", policy.reason, transaction.recovery_status.value, transaction.recovery_status.value, "BLOCKED", {"policy_rule": policy.policy_rule, "rechecked": True})

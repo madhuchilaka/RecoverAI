@@ -53,7 +53,9 @@ class AtRiskTransaction(BaseModel):
 
 
 class RecoverySummary(BaseModel):
+    initial_revenue_at_risk: float = Field(default=0, ge=0)
     revenue_at_risk: float = Field(..., ge=0)
+    current_revenue_at_risk: float = Field(default=0, ge=0)
     at_risk_transaction_count: int = Field(..., ge=0)
     average_transaction_value: float = Field(..., ge=0)
     risk_distribution: dict[RiskLevel, int]

@@ -1,0 +1,3 @@
+export default function GuardrailPanel({ recommendation, execution }) {
+  return <div className="subtle-panel"><div className="panel-heading"><h3>Guardrail decision</h3><span className="status-dot">● Active</span></div><dl className="detail-list"><div><dt>Policy</dt><dd>{recommendation?.requires_human_approval ? 'Approval required' : 'Action can be evaluated'}</dd></div><div><dt>Execution</dt><dd>{execution?.status || 'Not executed'}</dd></div><div><dt>Stopping status</dt><dd>{execution?.stopped ? execution.stop_reason : 'No stop rule triggered'}</dd></div><div><dt>Mode</dt><dd>Simulation / Test Mode</dd></div></dl></div>
+}

@@ -29,7 +29,11 @@ The intelligence API only recommends actions. It does not execute payments or se
 
 Phase 4 turns recommendations into a guarded workflow using simulated/test-mode actions only. The policy engine validates the allowlist, terminal transaction state, retry limit, repeated failures, critical risk, and the configurable `HIGH_VALUE_THRESHOLD` (default `50000`). Actions requiring approval create a pending recovery attempt and do not execute until approved.
 
-Every execution, block, approval, rejection, state transition, and stopping rule is stored in the audit log. Retry outcomes and communication outcomes are deterministic and reproducible; they do not call payment, email, or SMS providers. Recovered revenue is the sum of transaction amounts with `recovery_status=RECOVERED`, counted once, and recovery rate is recovered revenue divided by initial revenue at risk.
+Every execution, block, approval, rejection, state transition, stopping rule, and successful AI recommendation is stored in the audit log. Recovery attempts are numbered sequentially per transaction across retries and alternative actions. Retry outcomes and communication outcomes are deterministic and reproducible; they do not call payment, email, or SMS providers.
+
+The recovery state machine marks successful work `RECOVERED`, recoverable failures `AT_RISK`, and retry-limit, repeated-failure, or human-escalation stops `ESCALATED`. `NOT_RECOVERABLE` is used when no recovery action remains. Initial revenue at risk is the immutable eligibility baseline: qualifying `FAILED` and `ABANDONED` transaction value with plausible recovery probability before recovery state changes. Current revenue at risk excludes recovered, escalated, and not-recoverable transactions. Recovered revenue is the sum of transaction amounts with `recovery_status=RECOVERED`, counted once, and recovery rate is recovered revenue divided by initial revenue at risk.
+
+Successful analysis writes concise `AI_AGENT` recommendation audit metadata, including risk, probability, action, confidence, and approval requirement. No hidden chain-of-thought is stored.
 
 Phase 4 endpoints:
 
@@ -72,4 +76,4 @@ npm run dev -- --host 0.0.0.0
 - This project uses synthetic/demo data only.
 - No real financial transactions are executed.
 - The Phase 3 agent interface is deterministic and does not claim to use an LLM.
-- All Phase 4 recovery operations are simulated/test-mode operations and do not move real funds.
+- All payment and recovery operations are simulated/test-mode operations and do not move real funds.

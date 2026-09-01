@@ -98,11 +98,27 @@ def test_failed_retry_escalates_after_second_retry_and_limit_blocks(client, db_s
 
     failed = client.post(f"/api/recovery/execute/{transaction.id}", json={"action": "RETRY_PAYMENT"})
     assert failed.json()["status"] == "FAILED"
+    assert failed.json()["stopped"] is True
+    assert failed.json()["stop_reason"] == "Maximum retry attempts reached."
     db_session.refresh(transaction)
-    assert transaction.recovery_status == RecoveryStatus.AT_RISK
+    assert transaction.recovery_status == RecoveryStatus.ESCALATED
     blocked = client.post(f"/api/recovery/execute/{transaction.id}", json={"action": "RETRY_PAYMENT"})
     assert blocked.json()["status"] == "BLOCKED"
     assert "retry" in blocked.json()["message"].lower()
+
+
+def test_retry_limit_block_escalates_and_is_audited(client, db_session: Session):
+    customer = add_customer(db_session)
+    transaction = add_transaction(db_session, customer, external_transaction_id="TXN-LIMIT", retry_count=2)
+    db_session.commit()
+
+    response = client.post(f"/api/recovery/execute/{transaction.id}", json={"action": "RETRY_PAYMENT"})
+    assert response.json()["status"] == "BLOCKED"
+    assert response.json()["stopped"] is True
+    assert response.json()["stop_reason"] == "Maximum automatic retry attempts reached."
+    db_session.refresh(transaction)
+    assert transaction.recovery_status == RecoveryStatus.ESCALATED
+    assert db_session.query(AuditLog).filter(AuditLog.action == "POLICY_BLOCK").count() == 1
 
 
 def test_failed_retry_allows_payment_link_fallback(client, db_session: Session):
@@ -148,6 +164,57 @@ def test_high_value_approval_approve_and_reject(client, db_session: Session):
     assert rejected_response.json()["status"] == "REJECTED"
     db_session.refresh(rejected)
     assert rejected.recovery_status == RecoveryStatus.AT_RISK
+
+
+def test_attempt_numbering_and_repeated_failures_escalate(client, db_session: Session):
+    customer = add_customer(db_session)
+    transaction = add_transaction(db_session, customer, external_transaction_id="TXN-SEQUENCE", amount=2_000, id=3)
+    db_session.commit()
+
+    first = client.post(f"/api/recovery/execute/{transaction.id}", json={"action": "GENERATE_PAYMENT_LINK"})
+    assert first.status_code == 200
+    db_session.refresh(transaction)
+    transaction.recovery_status = RecoveryStatus.AT_RISK
+    db_session.add(RecoveryAttempt(transaction_id=transaction.id, action=RecoveryAction.GENERATE_PAYMENT_LINK, status=RecoveryAttemptStatus.FAILED, amount=transaction.amount, attempt_number=2, reason="Synthetic prior failure", result="Synthetic failure"))
+    db_session.commit()
+    second = client.post(f"/api/recovery/execute/{transaction.id}", json={"action": "GENERATE_PAYMENT_LINK"})
+    assert second.json()["status"] == "BLOCKED"
+    assert second.json()["stopped"] is True
+    db_session.refresh(transaction)
+    assert transaction.recovery_status == RecoveryStatus.ESCALATED
+    attempts = db_session.query(RecoveryAttempt).filter(RecoveryAttempt.transaction_id == transaction.id).order_by(RecoveryAttempt.attempt_number).all()
+    assert [attempt.attempt_number for attempt in attempts] == [1, 2, 3]
+
+
+def test_analysis_writes_structured_recommendation_audit(client, db_session: Session):
+    customer = add_customer(db_session)
+    transaction = add_transaction(db_session, customer, external_transaction_id="TXN-RECOMMENDATION")
+    db_session.commit()
+
+    response = client.post(f"/api/recovery/analyze/{transaction.id}")
+    assert response.status_code == 200
+    event = db_session.query(AuditLog).filter(AuditLog.transaction_id == transaction.id, AuditLog.action == "RECOVERY_RECOMMENDATION").one()
+    assert event.actor == "AI_AGENT"
+    assert '"risk_score"' in event.details
+    assert "chain" not in event.details.lower()
+
+
+def test_recovered_revenue_is_counted_once_and_current_risk_decreases(client, db_session: Session):
+    customer = add_customer(db_session)
+    recovered = add_transaction(db_session, customer, external_transaction_id="TXN-RECOVERED", amount=4_000)
+    outstanding = add_transaction(db_session, customer, external_transaction_id="TXN-OUTSTANDING", amount=6_000, id=4)
+    db_session.commit()
+
+    recovered_response = client.post(f"/api/recovery/execute/{recovered.id}", json={"action": "GENERATE_PAYMENT_LINK"})
+    assert recovered_response.json()["status"] == "RECOVERED"
+    summary = client.get("/api/recovery/summary").json()
+    assert summary["initial_revenue_at_risk"] == 10_000
+    assert summary["current_revenue_at_risk"] == 6_000
+    assert summary["revenue_at_risk"] == 6_000
+    assert summary["recovered_revenue"] == 4_000
+    assert summary["recovery_rate"] == 0.4
+    assert summary["successful_recoveries"] == 1
+    assert outstanding.recovery_status == RecoveryStatus.AT_RISK
 
 
 def test_invalid_action_terminal_state_history_and_summary(client, db_session: Session):
