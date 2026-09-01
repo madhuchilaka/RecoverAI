@@ -172,3 +172,52 @@ flowchart TD
 
     State --> Analytics[Revenue Analytics]
     Audit --> Analytics
+
+
+---
+
+## 5. Screenshots
+
+The following screenshots demonstrate the main RecoverAI workflow running in Simulation / Test Mode.
+
+### Dashboard
+
+![RecoverAI Dashboard](docs/screenshots/dashboard.png)
+
+Main merchant dashboard showing revenue-at-risk metrics, recovery KPIs, risk distribution, recovery outcomes, and recovery performance.
+
+### Transactions
+
+![RecoverAI Transactions](docs/screenshots/transactions.png)
+
+Transaction listing with customer information, amounts, status, failure reason, risk, recovery probability, search, and filtering.
+
+### Transaction Detail
+
+![Transaction Detail](docs/screenshots/transaction-detail.png)
+
+Transaction detail view showing transaction information, retry status, guardrail state, and recovery history.
+
+### AI Recovery Analysis
+
+![Transaction AI Analysis](docs/screenshots/transaction-ai-analysis.png)
+
+AI recovery analysis showing risk score, recovery probability, recommended recovery action, confidence, decision factors, and approval requirement.
+
+### Recovery Center
+
+![RecoverAI Recovery Center](docs/screenshots/recovery-center.png)
+
+Recovery operations workspace showing revenue at risk, recovery attempts, successful recoveries, pending approvals, and the at-risk transaction queue.
+
+### Analytics
+
+![RecoverAI Analytics](docs/screenshots/analytics.png)
+
+Analytics dashboard showing revenue performance, risk distribution, recovery outcomes, failure-reason distribution, and transaction-type distribution.
+
+### Audit Trail
+
+![RecoverAI Audit Trail](docs/screenshots/audit-logs.png)
+
+Audit trail showing AI-agent, policy-engine, and human-review events and their resulting states.
