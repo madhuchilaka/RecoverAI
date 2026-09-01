@@ -303,6 +303,7 @@ python -m venv .venv
 pip install -r requirements.txt
 python data\generate_data.py
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
 
 The data generator creates the deterministic synthetic SQLite dataset. Use the existing database if it has already been seeded.
 
@@ -310,21 +311,22 @@ The data generator creates the deterministic synthetic SQLite dataset. Use the e
 
 Open another terminal:
 
+```powershell
 cd frontend
 npm install
 npm run dev
+```
 
-The frontend development server runs on port 5173 and the backend runs on port 8000.
+The frontend development server runs on port `5173` and the backend runs on port `8000`.
 
 Open:
 
+```text
 http://localhost:5173
+```
 
+---
 
-
-### 11. Demo
-
-```markdown
 ## 11. Demo
 
 1. Open the Dashboard and review the revenue-at-risk metrics.
@@ -339,6 +341,7 @@ http://localhost:5173
 
 All recovery operations shown in the demo are simulated/test-mode operations.
 
+---
 
 ## 12. API Overview
 
@@ -371,6 +374,7 @@ All recovery operations shown in the demo are simulated/test-mode operations.
 - `GET /api/recovery-attempts`
 - `GET /api/audit-logs`
 
+---
 
 ## 13. Testing
 
