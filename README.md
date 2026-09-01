@@ -77,3 +77,16 @@ npm run dev -- --host 0.0.0.0
 - No real financial transactions are executed.
 - The Phase 3 agent interface is deterministic and does not claim to use an LLM.
 - All payment and recovery operations are simulated/test-mode operations and do not move real funds.
+
+## Demo Walkthrough
+
+1. Start FastAPI from `backend/` with `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`.
+2. Start the frontend from `frontend/` with `npm run dev -- --host 0.0.0.0`.
+3. Open the Dashboard and show the live revenue-at-risk, recovered-revenue, recovery-rate, and at-risk transaction metrics.
+4. Open transaction `TXN-000051` at `/transactions/51`.
+5. Click **Analyze Transaction** and review the deterministic risk, probability, diagnosis, recommended action, confidence, and approval requirement.
+6. Open Recovery Center, review the pending approval, and approve or reject it through the backend workflow.
+7. Return to Dashboard, click **Refresh**, and inspect the updated metrics.
+8. Open Audit Logs and expand the transaction events.
+
+All payment and recovery operations shown in this MVP are simulated/test-mode operations.

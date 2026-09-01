@@ -18,10 +18,9 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
-    historyApiFallback: true,
-        historyApiFallback: {
-          disableDotRule: true,
-        },
+    historyApiFallback: {
+      disableDotRule: true,
+    },
     host: '0.0.0.0',
     port: 5173,
     hot: true,
