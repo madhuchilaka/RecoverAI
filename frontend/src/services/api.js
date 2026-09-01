@@ -37,6 +37,12 @@ export const getAuditLogs = (params) => get('/api/audit-logs', params)
 export function getErrorMessage(error) {
   if (!error?.response) return 'Backend unavailable. Make sure the RecoverAI FastAPI server is running.'
   if (error.response.status === 404) return 'The requested record was not found.'
-  if (error.response.status === 400 || error.response.status === 422) return error.response.data?.detail || 'The request could not be validated.'
+  if (error.response.status === 400 || error.response.status === 422) {
+    const detail = error.response.data?.detail
+    if (typeof detail === 'string') return detail
+    if (Array.isArray(detail)) return detail.map((item) => item?.msg || String(item)).join('; ')
+    if (detail && typeof detail === 'object') return detail.msg || JSON.stringify(detail)
+    return 'The request could not be validated.'
+  }
   return 'Something went wrong while contacting the backend.'
 }
