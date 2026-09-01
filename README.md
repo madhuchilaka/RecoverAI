@@ -146,6 +146,7 @@ All recovery operations are simulated and do not move real funds.
 
 
 
+
 # 4. Architecture
 
 ```mermaid
@@ -172,11 +173,19 @@ flowchart TD
 
     State --> Analytics[Revenue Analytics]
     Audit --> Analytics
+```
 
+- **Frontend:** React, React Router, Axios, Recharts, Tailwind CSS, and webpack provide the merchant workspace.
+- **API layer:** FastAPI exposes transaction, customer, intelligence, execution, approval, history, analytics, and audit endpoints.
+- **Database:** SQLAlchemy persists synthetic customers, transactions, recovery attempts, and audit logs in SQLite.
+- **Intelligence:** Risk, diagnosis, probability, and decision components produce structured recommendations.
+- **Policy:** Backend guardrails enforce allowlisted actions, retry limits, terminal-state protection, escalation, and approval requirements.
+- **Execution:** The executor produces deterministic test-mode outcomes only.
+- **Analytics:** Summary metrics distinguish initial revenue at risk, current outstanding risk, recovered revenue, and recovery rate.
 
+---
 
-
-## 5. Screenshots
+# 5. Screenshots
 
 The following screenshots demonstrate the main RecoverAI workflow running in Simulation / Test Mode.
 
