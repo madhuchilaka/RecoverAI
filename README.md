@@ -234,6 +234,7 @@ Audit trail showing AI-agent, policy-engine, and human-review events and their r
 
 ---
 
+
 ## 6. AI / Intelligence Flow
 
 ```text
@@ -247,38 +248,46 @@ Transaction
   -> Simulated Recovery Execution
   -> Audit
   -> Analytics
+```
+
+The intelligence layer is a transparent deterministic baseline designed for demonstration and testing. It is not a trained machine-learning model and does not claim to use an LLM.
+
+---
 
 
 ## 7. Safety / Guardrails
 
 RecoverAI is designed with bounded recovery operations and human oversight.
 
-Automatic payment retries stop at two attempts.
-High-value transactions use the configurable HIGH_VALUE_THRESHOLD and require human approval.
-Critical risk, repeated failures, and explicit human escalation require human review or stop automation.
-Successful, recovered, escalated, and not-recoverable transactions cannot be recovered again.
-Only allowlisted recovery actions are accepted.
-Policy checks run in the backend before execution and again during approval.
-Every recommendation, approval, rejection, block, execution, and state transition is auditable.
+- Automatic payment retries stop at two attempts.
+- High-value transactions use the configurable `HIGH_VALUE_THRESHOLD` and require human approval.
+- Critical risk, repeated failures, and explicit human escalation require human review or stop automation.
+- Successful, recovered, escalated, and not-recoverable transactions cannot be recovered again.
+- Only allowlisted recovery actions are accepted.
+- Policy checks run in the backend before execution and again during approval.
+- Every recommendation, approval, rejection, block, execution, and state transition is auditable.
 
-All payment and recovery operations in this MVP are simulated/test-mode operations and do not move real funds.
+**All payment and recovery operations in this MVP are simulated/test-mode operations and do not move real funds.**
 
+---
 
 ## 8. Tech Stack
 
-Backend: Python, FastAPI, SQLAlchemy, SQLite, Pydantic, Pytest
+**Backend:** Python, FastAPI, SQLAlchemy, SQLite, Pydantic, Pytest
 
-Frontend: React, JavaScript, Axios, Recharts, Tailwind CSS, webpack
+**Frontend:** React, JavaScript, Axios, Recharts, Tailwind CSS, webpack
 
+---
 ## 9. Project Structure
 
+```text
 RecoverAI/
 ├── backend/
 │   ├── app/
 │   │   ├── agents/       # Risk, diagnosis, decision, policy, recovery facade
 │   │   ├── api/          # Transaction and recovery routes
 │   │   ├── models/       # SQLAlchemy entities
-│   │   └── schemas/      # Pydantic response/request models
+│   │   ├── schemas/      # Pydantic response/request models
 │   │   └── services/     # Analytics and simulated execution
 │   ├── data/             # Synthetic data generator
 │   └── tests/            # Phase 3 and Phase 4 tests
@@ -290,8 +299,11 @@ RecoverAI/
 │   └── src/hooks/
 ├── DEMO_SCRIPT.md
 └── docker-compose.yml
-Generated files such as node_modules, dist, .venv, __pycache__, and local database files are excluded from the repository.
+```
 
+Generated files such as `node_modules`, `dist`, `.venv`, `__pycache__`, and local database files are excluded from the repository.
+
+---
 ## 10. Getting Started
 
 ### Backend on Windows
