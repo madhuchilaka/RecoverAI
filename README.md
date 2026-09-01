@@ -144,7 +144,7 @@ All recovery operations are simulated and do not move real funds.
 - No real messaging providers
 - No real funds movement
 
----
+
 
 # 4. Architecture
 
@@ -174,7 +174,7 @@ flowchart TD
     Audit --> Analytics
 
 
----
+
 
 ## 5. Screenshots
 
